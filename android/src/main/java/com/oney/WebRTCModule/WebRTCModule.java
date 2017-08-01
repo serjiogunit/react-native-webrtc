@@ -1,5 +1,6 @@
 package com.oney.WebRTCModule;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.support.annotation.Nullable;
@@ -457,6 +458,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         VideoCapturer capturer = new VideoCapturer() {
             @Override
             public void initialize(SurfaceTextureHelper surfaceTextureHelper, Context context, CapturerObserver capturerObserver) {
+
             }
 
             @Override
@@ -500,7 +502,6 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 "readyState", track.state().toString());
         trackInfo.putBoolean("remote", false);
         result.pushMap(trackInfo);
-        mVideoCapturers.put(trackId, capturer);
         mMediaStreamTracks.put(trackId, track);
         mMediaStreams.put(streamId, stream);
         successCallback.invoke(streamId, result);
