@@ -330,7 +330,7 @@ RCT_EXPORT_METHOD(getEmptyVideoStream:(RCTResponseSenderBlock)successCallback
 //                                  @"readyState": @"live",
 //                                  @"remote": @(NO)
 //                                  }]]);
-  self.mediaStreams[streamId] = stream;
+  self.localStreams[streamId] = stream;
   successCallback(@[streamId, @[]]);
 }
 
