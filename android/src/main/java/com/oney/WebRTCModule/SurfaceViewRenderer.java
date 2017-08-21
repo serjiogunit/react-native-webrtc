@@ -19,9 +19,12 @@ import android.opengl.GLES20;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.concurrent.CountDownLatch;
 
 import javax.microedition.khronos.egl.EGLContext;
@@ -181,6 +184,11 @@ public class SurfaceViewRenderer extends SurfaceView
     tryCreateEglSurface();
   }
 
+  public static String getStackTrace(Throwable ex) {
+    StringWriter errors = new StringWriter();
+    ex.printStackTrace(new PrintWriter(errors));
+    return errors.toString();
+  }
   /**
    * Create and make an EGLSurface current if both init() and surfaceCreated() have been called.
    */
@@ -191,11 +199,15 @@ public class SurfaceViewRenderer extends SurfaceView
       @Override
       public void run() {
         synchronized (layoutLock) {
-          if (eglBase != null && isSurfaceCreated && !eglBase.hasSurface()) {
-            eglBase.createSurface(getHolder().getSurface());
-            eglBase.makeCurrent();
-            // Necessary for YUV frames with odd width.
-            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
+          try {
+            if (eglBase != null && isSurfaceCreated && !eglBase.hasSurface()) {
+              eglBase.createSurface(getHolder().getSurface());
+              eglBase.makeCurrent();
+              // Necessary for YUV frames with odd width.
+              GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
+            }
+          } catch (Exception e) {
+            Log.w(TAG, getStackTrace(e));
           }
         }
 
@@ -516,22 +528,27 @@ public class SurfaceViewRenderer extends SurfaceView
 
     // TODO(magjed): glClear() shouldn't be necessary since every pixel is covered anyway, but it's
     // a workaround for bug 5147. Performance will be slightly worse.
-    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-    if (frame.yuvFrame) {
-      // Make sure YUV textures are allocated.
-      if (yuvTextures == null) {
-        yuvTextures = new int[3];
-        for (int i = 0; i < 3; i++)  {
-          yuvTextures[i] = GlUtil.generateTexture(GLES20.GL_TEXTURE_2D);
+    try {
+      GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+      if (frame.yuvFrame) {
+        // Make sure YUV textures are allocated.
+        if (yuvTextures == null) {
+          yuvTextures = new int[3];
+          for (int i = 0; i < 3; i++)  {
+            yuvTextures[i] = GlUtil.generateTexture(GLES20.GL_TEXTURE_2D);
+          }
         }
+        yuvUploader.uploadYuvData(
+            yuvTextures, frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
+        drawer.drawYuv(yuvTextures, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
+            0, 0, surfaceSize.x, surfaceSize.y);
+      } else {
+        drawer.drawOes(frame.textureId, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
+            0, 0, surfaceSize.x, surfaceSize.y);
       }
-      yuvUploader.uploadYuvData(
-          yuvTextures, frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
-      drawer.drawYuv(yuvTextures, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
-          0, 0, surfaceSize.x, surfaceSize.y);
-    } else {
-      drawer.drawOes(frame.textureId, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
-          0, 0, surfaceSize.x, surfaceSize.y);
+    } catch (Exception e) {
+      Log.w(TAG, getStackTrace(e));
+      return;
     }
 
     eglBase.swapBuffers();
