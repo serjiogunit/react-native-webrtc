@@ -59,7 +59,11 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         // Initialize EGL contexts required for HW acceleration.
         EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
         if (eglContext != null) {
-            mFactory.setVideoHwAccelerationOptions(eglContext, eglContext);
+            try {
+                mFactory.setVideoHwAccelerationOptions(eglContext, eglContext);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         getUserMediaImpl = new GetUserMediaImpl(this, reactContext);
