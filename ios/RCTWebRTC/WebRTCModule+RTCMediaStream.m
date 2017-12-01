@@ -461,7 +461,7 @@ RCT_EXPORT_METHOD(mediaStreamTrackStop:(nonnull NSString *)trackID)
   [AVCaptureDevice
     requestAccessForMediaType:mediaType
     completionHandler:^ (BOOL granted) {
-      dispatch_async(dispatch_get_main_queue(), ^ {
+      // dispatch_async(dispatch_get_main_queue(), ^ {
         if (granted) {
           NavigatorUserMediaSuccessCallback scb
             = ^ (RTCMediaStream *mediaStream) {
@@ -489,7 +489,7 @@ RCT_EXPORT_METHOD(mediaStreamTrackStop:(nonnull NSString *)trackID)
           // NotAllowedError."
           errorCallback(@"DOMException", @"NotAllowedError");
         }
-      });
+      // });
     }];
 }
 
