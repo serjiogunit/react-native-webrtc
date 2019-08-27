@@ -10,19 +10,37 @@
 
 #import <Foundation/Foundation.h>
 
-#import "WebRTC/RTCVideoRenderer.h"
+#import "RTCMacros.h"
+#import "RTCVideoFrame.h"
+#import "RTCVideoRenderer.h"
 
 NS_ASSUME_NONNULL_BEGIN
-RTC_EXPORT
 
 /**
  * RTCMTLVideoView is thin wrapper around MTKView.
  *
  * It has id<RTCVideoRenderer> property that renders video frames in the view's
  * bounds using Metal.
+ * NOTE: always check if metal is available on the running device via
+ * RTC_SUPPORTS_METAL macro before initializing this class.
  */
 NS_CLASS_AVAILABLE_IOS(9)
-@interface RTCMTLVideoView : UIView <RTCVideoRenderer>
+
+RTC_OBJC_EXPORT
+@interface RTCMTLVideoView : UIView<RTCVideoRenderer>
+
+@property(nonatomic, weak) id<RTCVideoViewDelegate> delegate;
+
+@property(nonatomic) UIViewContentMode videoContentMode;
+
+/** @abstract Enables/disables rendering.
+ */
+@property(nonatomic, getter=isEnabled) BOOL enabled;
+
+/** @abstract Wrapped RTCVideoRotation, or nil.
+ */
+@property(nonatomic, nullable) NSValue* rotationOverride;
 
 @end
+
 NS_ASSUME_NONNULL_END

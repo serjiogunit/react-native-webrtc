@@ -16,6 +16,8 @@
 #import <WebRTC/RTCPeerConnection.h>
 #import <WebRTC/RTCAudioTrack.h>
 #import <WebRTC/RTCVideoTrack.h>
+#import <WebRTC/RTCVideoDecoderFactory.h>
+#import <WebRTC/RTCVideoEncoderFactory.h>
 
 @interface WebRTCModule : NSObject <RCTBridgeModule>
 
@@ -24,7 +26,10 @@
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, RTCPeerConnection *> *peerConnections;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *remoteStreams;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *remoteTracks;
+
+- (instancetype)initWithEncoderFactory:(id<RTCVideoEncoderFactory>)encoderFactory
+                        decoderFactory:(id<RTCVideoDecoderFactory>)decoderFactory;
+
+- (RTCMediaStream*)streamForReactTag:(NSString*)reactTag;
 
 @end
