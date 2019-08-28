@@ -19,7 +19,7 @@ export {
   MediaStream,
   MediaStreamTrack,
   mediaDevices,
-  permissions
+  permissions,
   getUserMedia,
   getEmptyVideoStream,
 };
