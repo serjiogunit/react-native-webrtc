@@ -1,5 +1,6 @@
 package com.oney.WebRTCModule;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.SparseArray;
@@ -13,6 +14,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
@@ -978,5 +981,47 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         } else {
             pco.dataChannelSend(dataChannelId, data, type);
         }
+    }
+
+    private String getNextStreamUUID() {
+        String uuid;
+
+        do {
+            uuid = UUID.randomUUID().toString();
+        } while (localStreams.containsKey(uuid));
+
+        return uuid;
+    }
+
+    private String getNextTrackUUID() {
+        String uuid;
+
+        do {
+            uuid = UUID.randomUUID().toString();
+        } while (getLocalTrack(uuid) != null);
+
+        return uuid;
+    }
+
+    @ReactMethod
+    public void getEmptyVideoStream(Callback successCallback, Callback errorCallback) {
+        VideoSource source = mFactory.createVideoSource(false);
+        String trackId = getNextTrackUUID();
+        VideoTrack track = mFactory.createVideoTrack(trackId, source);
+        String streamId = getNextStreamUUID();
+        MediaStream stream = mFactory.createLocalMediaStream(streamId);
+        stream.addTrack(track);
+        WritableArray result = Arguments.createArray();
+        WritableMap trackInfo = Arguments.createMap();
+        trackInfo.putString("id", trackId);
+        trackInfo.putString("label", "Video");
+        trackInfo.putString("kind", track.kind());
+        trackInfo.putBoolean("enabled", track.enabled());
+        trackInfo.putString("readyState", track.state().toString());
+        trackInfo.putBoolean("remote", false);
+        result.pushMap(trackInfo);
+        localStreams.put(streamId, stream);
+        stream.addTrack((VideoTrack)track);
+        successCallback.invoke(streamId, result);
     }
 }
