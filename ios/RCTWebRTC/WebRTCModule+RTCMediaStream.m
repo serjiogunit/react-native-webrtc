@@ -236,6 +236,18 @@ RCT_EXPORT_METHOD(mediaStreamTrackSwitchCamera:(nonnull NSString *)trackID)
   }
 }
 
+RCT_EXPORT_METHOD(getEmptyVideoStream:(RCTResponseSenderBlock)successCallback
+                        errorCallback:(RCTResponseSenderBlock)errorCallback)
+{
+  for (AVCaptureDevice *device in [AVCaptureDevice devices]) {
+    NSLog(@"AVCaptureDevice: %@", device);
+  }
+  NSString *streamId = [[NSUUID UUID] UUIDString];
+  RTCMediaStream *stream = [self.peerConnectionFactory mediaStreamWithStreamId:streamId];
+  self.localStreams[streamId] = stream;
+  successCallback(@[streamId, @[]]);
+}
+
 #pragma mark - Helpers
 
 - (RTCMediaStreamTrack*)trackForId:(NSString*)trackId
